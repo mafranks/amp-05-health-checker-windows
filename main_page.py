@@ -7,6 +7,7 @@ import time
 import PySimpleGUI as sg
 import popups
 from data import Data
+import argparse
 
 
 def main():
@@ -14,6 +15,10 @@ def main():
     This is the main function that ties all other components together:
     """
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--debug', action="store_true", help="Puts Health Checker into debug logging mode.")
+    args = parser.parse_args()
+    
     logging.basicConfig(
         format='%(asctime)s %(name)-12s %(levelname)-8s %(filename)s %(funcName)s %(message)s',
         datefmt='%m-%d %H:%M:%S',
@@ -23,7 +28,7 @@ def main():
     logging.warning("AMP Health Checker logging level is %s", \
         logging.getLevelName(logging.getLogger().level))
     logging.debug("%s: Starting Health Checker", time.ctime())
-
+    
     x_count = 0
 
     button_size = (20, 1)
@@ -208,6 +213,14 @@ def main():
             d_instance.generate_diagnostic()
             if d_instance.diag_failed:
                 popups.diag_failed_popup()
+        if args.debug == True:
+            logging.getLogger().setLevel(logging.DEBUG)
+            logging.debug('Log level changed to %s', logging.getLevelName(logging.getLogger().level))
+            window.FindElement('_INFO').Update(button_color=('black', '#F0F0F0'))
+            window.FindElement('_WARNING').Update(button_color=('black', '#F0F0F0'))
+            window.FindElement('_DEBUG').Update(button_color=('white', 'green'))
+            d_instance.verify_api_creds()
+            window.Refresh()
     if d_instance.enabled_debug:
         d_instance.disable_debug()
     window.close()
